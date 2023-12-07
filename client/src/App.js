@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Customer from './components/Customer'
 import './App.css';
 import Paper from '@mui/material/Paper';
@@ -11,34 +11,37 @@ import { createTheme } from '@mui/material';
 
 const theme = createTheme();
 
-const customers = [
-  {
-    'id': 1,
-    'image': 'https://picsum.photos/id/1/64/64',
-    'name': '김주환',
-    'birthday': '990601',
-    'gender': 'Male',
-    'job': 'Under graduate'
-  },
-  {
-    'id': 2,
-    'image': 'https://picsum.photos/id/2/64/64',
-    'name': '홍길동',
-    'birthday': '000000',
-    'gender': 'Male',
-    'job': '의적'
-  },
-  {
-    'id': 3,
-    'image': 'https://picsum.photos/id/3/64/64',
-    'name': '이순신',
-    'birthday': '000001',
-    'gender': 'Male',
-    'job': '해군'
-  }
-]
-
 function App() {
+
+  const [customers, setCustomers] = useState("");
+  // state = {
+  //   customers: ""
+  // }
+
+  useEffect(() => {
+    const callApi = async () => {
+      const response = await fetch('/api/customers');
+      const body = await response.json();
+      return body;
+    };
+
+    callApi()
+      .then(res => setCustomers(res))
+      .catch(err => console.log(err));
+  }, []);
+
+  // componentDidMount() {
+  //   this.callApi()
+  //     .then(res => this.setState({customers: res}))
+  //     .catch(err => console.log(err));
+  // }
+
+  // callApi = async () => {
+  //   const response = await fetch('/api/customers');
+  //   const body = await response.json();
+  //   return body;
+  // }
+
   return (
     <Paper sx={{width: '100%', marginTop:theme.spacing(3), overflowX: "auto"}}>
       <Table sx={{minWidth:1080}}>
@@ -54,7 +57,8 @@ function App() {
         </TableHead>
         <TableBody>
           {
-            customers.map(c => {
+            // this.state.customers ? this.state.customers.map(c => {
+            customers ? customers.map(c => {
               return (
                 <Customer
                   key={c.id} // map은 키 값이 필요한데, 컴포넌트 내부에 넣는게 특이하다. 컴포넌트를 구분하는 용도인듯.
@@ -66,7 +70,7 @@ function App() {
                   job={c.job}
                 />
               )
-            })
+            }) : ""
           }
         </TableBody>
       </Table>
