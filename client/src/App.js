@@ -7,6 +7,7 @@ import TableHead from '@mui/material/TableHead';
 import TableBody from '@mui/material/TableBody';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell'
+import CircularProgress from '@mui/material/CircularProgress'
 import { createTheme } from '@mui/material';
 
 const theme = createTheme();
@@ -14,9 +15,7 @@ const theme = createTheme();
 function App() {
 
   const [customers, setCustomers] = useState("");
-  // state = {
-  //   customers: ""
-  // }
+  const [completed, setCompleted] = useState(0);
 
   useEffect(() => {
     const callApi = async () => {
@@ -25,22 +24,18 @@ function App() {
       return body;
     };
 
+    const timer = setInterval(() => {
+      setCompleted((prevCompleted) => (prevCompleted >= 100 ? 0 : prevCompleted + 10));
+    }, 800);
+
     callApi()
       .then(res => setCustomers(res))
       .catch(err => console.log(err));
+
+    return () => {
+      clearInterval(timer);
+    };
   }, []);
-
-  // componentDidMount() {
-  //   this.callApi()
-  //     .then(res => this.setState({customers: res}))
-  //     .catch(err => console.log(err));
-  // }
-
-  // callApi = async () => {
-  //   const response = await fetch('/api/customers');
-  //   const body = await response.json();
-  //   return body;
-  // }
 
   return (
     <Paper sx={{width: '100%', marginTop:theme.spacing(3), overflowX: "auto"}}>
@@ -70,7 +65,12 @@ function App() {
                   job={c.job}
                 />
               )
-            }) : ""
+            }) :
+            <TableRow>
+              <TableCell colSpan="6" align="center">
+                <CircularProgress sx={{margin:theme.spacing(2)}} variant="determinate" value={ completed }/>
+              </TableCell>
+            </TableRow>
           }
         </TableBody>
       </Table>
