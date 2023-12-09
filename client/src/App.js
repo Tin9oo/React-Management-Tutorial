@@ -11,16 +11,70 @@ import TableCell from '@mui/material/TableCell'
 import CircularProgress from '@mui/material/CircularProgress'
 import { createTheme } from '@mui/material';
 
+import { styled, alpha } from '@mui/material/styles';
+import AppBar from '@mui/material/AppBar';
+import Box from '@mui/material/Box';
+import Toolbar from '@mui/material/Toolbar';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
+import InputBase from '@mui/material/InputBase';
+import MenuIcon from '@mui/icons-material/Menu';
+import SearchIcon from '@mui/icons-material/Search';
+
+const Search = styled('div')(({ theme }) => ({
+  position: 'relative',
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: alpha(theme.palette.common.white, 0.15),
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.common.white, 0.25),
+  },
+  marginLeft: 0,
+  width: '100%',
+  [theme.breakpoints.up('sm')]: {
+    marginLeft: theme.spacing(1),
+    width: 'auto',
+  },
+}));
+
+const SearchIconWrapper = styled('div')(({ theme }) => ({
+  padding: theme.spacing(0, 2),
+  height: '100%',
+  position: 'absolute',
+  pointerEvents: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}));
+
+const StyledInputBase = styled(InputBase)(({ theme }) => ({
+  color: 'inherit',
+  width: '100%',
+  '& .MuiInputBase-input': {
+    padding: theme.spacing(1, 1, 1, 0),
+    // vertical padding + font size from searchIcon
+    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+    transition: theme.transitions.create('width'),
+    [theme.breakpoints.up('sm')]: {
+      width: '12ch',
+      '&:focus': {
+        width: '20ch',
+      },
+    },
+  },
+}));
+
 const theme = createTheme();
 
 function App() {
 
   const [customers, setCustomers] = useState('');
   const [completed, setCompleted] = useState(0);
+  const [searchKeyword, setSearchKeyword] = useState('');
 
   const stateRefresh = () => {
     setCustomers('');
     setCompleted(0);
+    setSearchKeyword('');
     callApi()
       .then(res => setCustomers(res))
       .catch(err => console.log(err));
@@ -46,38 +100,84 @@ function App() {
     };
   }, []);
 
+  const handleValueChange = (e) => {
+    setSearchKeyword(e.target.value);
+  }
+
+  const filteredComponents = (data) => {
+    data = data.filter((c) => {
+      return c.name.indexOf(searchKeyword) > -1;
+    });
+    return data.map((c) => {
+      return (
+        <Customer
+          stateRefresh={stateRefresh}
+          key={c.id}
+          id={c.id}
+          image={c.image}
+          name={c.name}
+          birthday={c.birthday}
+          gender={c.gender}
+          job={c.job}
+        />
+      )
+    });
+  }
+
+  const cellList = ["번호", "프로필 이미지", "이름", "생년월일", "성별", "직업"];
+
   return (
-    <div>
-      <Paper sx={{width: '100%', marginTop:theme.spacing(3), overflowX: "auto"}}>
-        <Table sx={{minWidth:1080}}>
+    <div sx={{width: '100%', minWidth: 1080}}>
+      <AppBar position="static">
+        <Toolbar>
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="open drawer"
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography
+            variant="h6"
+            noWrap
+            component="div"
+            sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
+          >
+            고객 관리 시스템
+          </Typography>
+          <Search>
+            <SearchIconWrapper>
+              <SearchIcon />
+            </SearchIconWrapper>
+            <StyledInputBase
+              placeholder="검색하기"
+              inputProps={{ 'aria-label': 'search' }}
+              name='searchKeyword'
+              value={searchKeyword}
+              onChange={handleValueChange}
+            />
+          </Search>
+        </Toolbar>
+      </AppBar>
+      <div style={{marginTop: 15, marginBottom: 15, display: 'flex', justifyContent: 'center'}}>
+        <CustomerAdd stateRefresh={stateRefresh}/>
+      </div>
+      <Paper sx={{marginLeft: 1, marginRight: 1}}>
+        <Table>
           <TableHead>
             <TableRow>
-              <TableCell>번호</TableCell>
-              <TableCell>이미지</TableCell>
-              <TableCell>이름</TableCell>
-              <TableCell>생년월일</TableCell>
-              <TableCell>성별</TableCell>
-              <TableCell>직업</TableCell>
-              <TableCell>설정</TableCell>
+              {cellList.map(c => {
+                return <TableCell sx={{fontSize: '1.0rem'}}>{c}</TableCell>
+              })}
             </TableRow>
           </TableHead>
           <TableBody>
             {
               // this.state.customers ? this.state.customers.map(c => {
-              customers ? customers.map(c => {
-                return (
-                  <Customer
-                    stateRefresh={stateRefresh}
-                    key={c.id} // map은 키 값이 필요한데, 컴포넌트 내부에 넣는게 특이하다. 컴포넌트를 구분하는 용도인듯.
-                    id={c.id}
-                    image={c.image}
-                    name={c.name}
-                    birthday={c.birthday}
-                    gender={c.gender}
-                    job={c.job}
-                  />
-                )
-              }) :
+              customers ? 
+              filteredComponents(customers) :
               <TableRow>
                 <TableCell colSpan="6" align="center">
                   <CircularProgress sx={{margin:theme.spacing(2)}} variant="determinate" value={ completed }/>
@@ -87,7 +187,6 @@ function App() {
           </TableBody>
         </Table>
       </Paper>
-      <CustomerAdd stateRefresh={stateRefresh}/>
     </div>
   );
 }
