@@ -58,6 +58,7 @@ function App() {
               <TableCell>생년월일</TableCell>
               <TableCell>성별</TableCell>
               <TableCell>직업</TableCell>
+              <TableCell>설정</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -66,6 +67,7 @@ function App() {
               customers ? customers.map(c => {
                 return (
                   <Customer
+                    stateRefresh={stateRefresh}
                     key={c.id} // map은 키 값이 필요한데, 컴포넌트 내부에 넣는게 특이하다. 컴포넌트를 구분하는 용도인듯.
                     id={c.id}
                     image={c.image}
